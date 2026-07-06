@@ -48,6 +48,12 @@ entries:
 permissions:
   - llm.invoke
 
+# The app only rewrites the pasted text and retrieves no patient record, but the
+# brain's install schema requires a declared read layer alongside llm.invoke.
+requires_layers:
+  - layer: semantic
+    mode: read
+
 requires_endpoints:
   - POST /chat/rag
 
