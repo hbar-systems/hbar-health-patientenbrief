@@ -1,0 +1,55 @@
+# hbar.health — Patientenbrief — brain-app manifest
+#
+# Turns doctor-approved clinical text (a finding, a note, a medication change)
+# into a patient-friendly explanation — in einfachem Deutsch OR translated to
+# Türkisch, Arabisch, Russisch, Ukrainisch, Englisch. The second Hausarzt has a
+# migrant-heavy panel and named communication friction in both directions; this
+# is the emotional showstopper that flips the sovereignty story into something
+# warm — private AI that serves patients, locally, no cloud translator ever
+# seeing the data.
+#
+# STRICT CONSTRAINT: it only REWRITES / TRANSLATES content the doctor already
+# approved. It must never add new medical information, diagnoses, or advice. Every
+# output is an ENTWURF the doctor approves — including the translated version
+# (mistranslation liability is real). Documentation/communication support only,
+# outside Medizinprodukt classification.
+#
+# Uses the llm.complete bridge. No patient record is retrieved — the doctor
+# pastes the text to rewrite; nothing is persisted.
+#
+# Schema: registry/schema/brain/app.schema.json (in hbar.world)
+# Created: 2026-07-06
+
+dialect: brain-app/v1
+id: hbar-health-patientenbrief
+name: Patientenbrief
+version: 0.1.0
+description: Formuliert vom Arzt freigegebene Inhalte patientenfreundlich um — in einfachem Deutsch oder übersetzt (Türkisch, Arabisch, Russisch, Ukrainisch, Englisch). Nur Umformulierung freigegebener Inhalte, keine neue medizinische Beratung. ENTWURF — ärztliche Freigabe erforderlich.
+license: AGPL-3.0
+
+author:
+  name: hbar
+  url: https://hbar.systems
+  contact: hello@hbar.systems
+
+repo: https://github.com/hbar-systems/hbar-health-patientenbrief
+
+tab:
+  label: Patientenbrief
+  route: /patientenbrief
+  order: 37
+
+entries:
+  ui_bundle: dist/
+
+# llm.invoke only — the doctor pastes the source text; the app rewrites/translates
+# it. No requires_layers (it does not retrieve a patient record) and no
+# memory.write (nothing persisted).
+permissions:
+  - llm.invoke
+
+requires_endpoints:
+  - POST /chat/rag
+
+engines:
+  brainfoundry-nous: ">=0.8.4"
