@@ -24,7 +24,7 @@ dialect: brain-app/v1
 id: hbar-health-patientenbrief
 name: Patientenbrief
 version: 0.1.0
-description: Formuliert vom Arzt freigegebene Inhalte patientenfreundlich um — in einfachem Deutsch oder übersetzt (Türkisch, Arabisch, Russisch, Ukrainisch, Englisch). Nur Umformulierung freigegebener Inhalte, keine neue medizinische Beratung. ENTWURF — ärztliche Freigabe erforderlich.
+description: Formuliert freigegebene Texte patientenfreundlich um — einfaches Deutsch oder Übersetzung (Türkisch, Arabisch, Russisch, Ukrainisch, Englisch). Nur Umformulierung, keine neue Beratung. ENTWURF, ärztliche Freigabe nötig.
 license: AGPL-3.0
 
 author:
