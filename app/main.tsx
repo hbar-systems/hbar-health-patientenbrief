@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { type Theme, getStoredTheme, storeTheme, colors } from "./theme";
 import { llmComplete, inBrain } from "./brainBridge";
+import { type Lang as UiLang, type Strings, getStoredLang, storeLang, t } from "./i18n";
 import "./styles.css";
 
 interface Lang {
@@ -53,22 +54,24 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-function errorMessage(code: string): string {
+function errorMessage(code: string, s: Strings): string {
   switch (code) {
     case "not_in_brain":
-      return "Patientenbrief funktioniert nur innerhalb des Praxis-Brains.";
+      return s.errNotInBrain;
     case "permission_denied":
-      return "Zugriff auf das Modell noch nicht freigegeben (Berechtigung im Brain bestätigen).";
+      return s.errPermissionDenied;
     case "llm_complete_timeout":
-      return "Zeitüberschreitung — bitte erneut versuchen.";
+      return s.errTimeout;
     default:
-      return "Text konnte nicht erzeugt werden (Modell nicht verfügbar). Bitte später erneut versuchen.";
+      return s.errDefault;
   }
 }
 
 function App() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const c = colors(theme);
+  const [uiLang, setUiLang] = useState<UiLang>(getStoredLang);
+  const s = t(uiLang);
   const [source, setSource] = useState("");
   const [langCode, setLangCode] = useState("de");
   const [result, setResult] = useState("");
@@ -82,6 +85,12 @@ function App() {
     const next: Theme = theme === "light" ? "dark" : "light";
     setTheme(next);
     storeTheme(next);
+  };
+
+  const toggleUiLang = () => {
+    const next: UiLang = uiLang === "de" ? "en" : "de";
+    setUiLang(next);
+    storeLang(next);
   };
 
   const flash = (m: string) => {
@@ -101,7 +110,7 @@ function App() {
       ]);
       setResult(res.text);
     } catch (e) {
-      setError(errorMessage(String((e as Error).message || e)));
+      setError(errorMessage(String((e as Error).message || e), s));
     } finally {
       setLoading(false);
     }
@@ -109,7 +118,7 @@ function App() {
 
   const copy = async () => {
     if (!result) return;
-    flash((await copyText(result)) ? "In die Zwischenablage kopiert." : "Kopieren fehlgeschlagen.");
+    flash((await copyText(result)) ? s.copiedToast : s.copyFailedToast);
   };
 
   const field: React.CSSProperties = {
@@ -129,29 +138,33 @@ function App() {
       <div style={{ maxWidth: 720, margin: "0 auto", paddingTop: "1rem", paddingBottom: "3rem" }}>
         <nav style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.7rem 0", borderBottom: `1px solid ${c.navBorder}`, marginBottom: "1.25rem" }}>
           <span style={{ fontSize: "0.9rem", fontWeight: 700, color: c.brand, letterSpacing: "0.04em" }}>hbar.health · Patientenbrief</span>
-          <button type="button" onClick={toggleTheme} style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", fontWeight: 600, border: `1px solid ${c.border}`, borderRadius: 4, background: "transparent", color: c.muted, cursor: "pointer" }}>
-            {theme === "light" ? "☀ → ☾" : "☾ → ☀"}
-          </button>
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            <button type="button" onClick={toggleUiLang} style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", fontWeight: 600, border: `1px solid ${c.border}`, borderRadius: 4, background: "transparent", color: c.muted, cursor: "pointer" }}>
+              {uiLang === "de" ? "DE → EN" : "EN → DE"}
+            </button>
+            <button type="button" onClick={toggleTheme} style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem", fontWeight: 600, border: `1px solid ${c.border}`, borderRadius: 4, background: "transparent", color: c.muted, cursor: "pointer" }}>
+              {theme === "light" ? "☀ → ☾" : "☾ → ☀"}
+            </button>
+          </div>
         </nav>
 
         <p style={{ color: c.muted, fontSize: "0.9rem", lineHeight: 1.55, margin: "0 0 1.25rem 0" }}>
-          Vom Arzt freigegebenen Text patientenfreundlich umformulieren — in einfachem Deutsch oder
-          übersetzt. Es werden nur vorhandene Inhalte vereinfacht, keine neuen medizinischen Aussagen erzeugt.
+          {s.introPara}
         </p>
 
         <label style={{ fontSize: "0.8rem", fontWeight: 600, color: c.muted, display: "block", marginBottom: "0.35rem" }}>
-          Freigegebener Text (Befund, Notiz, Medikationsänderung)
+          {s.freigegebenerTextLabel}
         </label>
         <textarea
           value={source}
           onChange={(e) => setSource(e.target.value)}
-          placeholder="Text hier einfügen…"
+          placeholder={s.freigegebenerTextPlaceholder}
           style={{ ...field, minHeight: 130, resize: "vertical" }}
         />
 
         <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.8rem", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
-            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: c.muted, display: "block", marginBottom: "0.35rem" }}>Zielsprache des Briefs</label>
+            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: c.muted, display: "block", marginBottom: "0.35rem" }}>{s.zielspracheLabel}</label>
             <select value={langCode} onChange={(e) => setLangCode(e.target.value)} style={{ ...field, width: "auto", minWidth: 180, cursor: "pointer" }}>
               {LANGS.map((l) => (
                 <option key={l.code} value={l.code}>{l.label}</option>
@@ -159,9 +172,9 @@ function App() {
             </select>
           </div>
           <button type="button" className="rc-btn" disabled={loading || !source.trim()} onClick={generate} style={{ background: c.btnBg, color: c.btnText }}>
-            {loading ? "Erstelle…" : "Patientenbrief erstellen"}
+            {loading ? s.generatingButton : s.generateButton}
           </button>
-          {!inBrain() && <span style={{ fontSize: "0.75rem", color: c.muted, fontStyle: "italic", alignSelf: "center" }}>Nur im Praxis-Brain verfügbar</span>}
+          {!inBrain() && <span style={{ fontSize: "0.75rem", color: c.muted, fontStyle: "italic", alignSelf: "center" }}>{s.onlyInBrainHint}</span>}
         </div>
 
         {error && (
@@ -174,7 +187,7 @@ function App() {
           <div style={{ marginTop: "1.5rem" }}>
             <div style={{ background: c.card, border: `1px solid ${c.border}`, borderRadius: 10, padding: "1.1rem 1.2rem", position: "relative" }}>
               <div style={{ position: "absolute", top: "0.9rem", right: "1rem", fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.15em", color: c.soonText }}>
-                ENTWURF
+                {s.entwurfBadge}
               </div>
               <div
                 dir={lang.rtl ? "rtl" : "ltr"}
@@ -185,15 +198,14 @@ function App() {
             </div>
             <div style={{ display: "flex", gap: "0.6rem", marginTop: "0.7rem" }}>
               <button type="button" className="rc-small" onClick={copy} style={{ border: `1px solid ${c.border}`, background: c.card, color: c.text }}>
-                In Zwischenablage kopieren
+                {s.copyButton}
               </button>
             </div>
           </div>
         )}
 
         <p style={{ fontSize: "0.75rem", color: c.muted, marginTop: "2rem", lineHeight: 1.55 }}>
-          Der Patientenbrief ist ein Entwurf und gibt nur den vom Arzt freigegebenen Inhalt wieder.
-          Bitte prüfen und freigeben — auch die Übersetzung — bevor er an die Patientin/den Patienten geht.
+          {s.footerNote}
         </p>
 
         {toast && (

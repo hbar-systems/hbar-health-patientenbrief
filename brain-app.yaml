@@ -23,7 +23,7 @@
 dialect: brain-app/v1
 id: hbar-health-patientenbrief
 name: Patientenbrief
-version: 0.1.1
+version: 0.1.2
 description: Formuliert freigegebene Texte patientenfreundlich um — einfaches Deutsch oder Übersetzung (Türkisch, Arabisch, Russisch, Ukrainisch, Englisch). Nur Umformulierung, keine neue Beratung. ENTWURF, ärztliche Freigabe nötig.
 license: AGPL-3.0
 
