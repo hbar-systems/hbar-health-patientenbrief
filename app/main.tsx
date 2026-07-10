@@ -151,7 +151,7 @@ function App() {
 
         <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.8rem", alignItems: "flex-end", flexWrap: "wrap" }}>
           <div>
-            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: c.muted, display: "block", marginBottom: "0.35rem" }}>Sprache</label>
+            <label style={{ fontSize: "0.8rem", fontWeight: 600, color: c.muted, display: "block", marginBottom: "0.35rem" }}>Zielsprache des Briefs</label>
             <select value={langCode} onChange={(e) => setLangCode(e.target.value)} style={{ ...field, width: "auto", minWidth: 180, cursor: "pointer" }}>
               {LANGS.map((l) => (
                 <option key={l.code} value={l.code}>{l.label}</option>
